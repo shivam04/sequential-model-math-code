@@ -64,8 +64,10 @@ H = np.array(H)
 print("\nEncoder Hidden States H:\n", H)
 
 # ---------- DECODER ----------
+s_t = H[-1]   # initialize decoder with last encoder state
 
-s_t = np.zeros(2)
+print("\n=== DECODER ===")
+print("s_0:", s_t)
 
 # dummy previous token input (just for demo)
 y_tprev = np.array([1, 0])
