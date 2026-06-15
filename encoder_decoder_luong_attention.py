@@ -99,4 +99,4 @@ for t in range(2):
 
     y_t = output_layer(stilde_t, W_out)
     print("output probs:", y_t)
-    y_prev = y_t
+    y_tprev = y_t
