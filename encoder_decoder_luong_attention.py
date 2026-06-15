@@ -64,10 +64,8 @@ H = np.array(H)
 print("\nEncoder Hidden States H:\n", H)
 
 # ---------- DECODER ----------
-h_dec = H[-1]   # initialize decoder with last encoder state
 
-print("\n=== DECODER ===")
-print("h0_dec:", h_dec)
+s_t = np.zeros(2)
 
 # dummy previous token input (just for demo)
 y_tprev = np.array([1, 0])
@@ -88,7 +86,7 @@ W_out = np.array([[0.2, 0.1],
 for t in range(2):
 
     # hidden decoder state
-    s_t = rnn_step(y_tprev, h_dec, Ws, Wsh)
+    s_t = rnn_step(y_tprev, s_t, Ws, Wsh)
     c_t, alpha_t = attention_luong(s_t, H)
 
     print(alpha_t)
