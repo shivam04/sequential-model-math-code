@@ -41,12 +41,24 @@ Wx = np.array([[1, 1],
 Wh = np.array([[1, 1],
                [1, 1]])
 
+
+# d_size = 2
+# vocab_size = 5 <START>, Je, aime, chat, <END>
+# Embedding
+E = np.array([[1, 0],
+             [1, 1],
+             [1, 1],
+             [1, 1],
+             [0, 1]])
+
 # Input sequence (3 timesteps, 2-dim embeddings)
 X = [
     np.array([1, 0]),
     np.array([0, 1]),
     np.array([1, 1])
 ]
+
+
 
 # ---------- ENCODER ----------
 h = np.zeros(2)
@@ -70,10 +82,10 @@ print("\n=== DECODER ===")
 print("s_0:", s_t)
 
 # dummy previous token input (just for demo)
-y_tprev = np.array([1, 0, 0])
+y_tprev = np.array([1, 0, 0, 0, 0])
 
-Ws = [[1, 1, 1],
-      [1, 1, 1]]
+Ws = [[1, 1],
+      [1, 1]]
 
 Wsh = [[1,1],
        [1, 1]]
@@ -83,12 +95,14 @@ Wc = np.array([[1, 1, 1, 1],
 
 W_out = np.array([[0.2, 0.1],
                   [0.1, 0.3],
-                  [0.4, 0.2]])
+                  [0.4, 0.2],
+                  [0.2, 0.4],
+                  [0.3, 0.2]])
 
 for t in range(2):
 
     # hidden decoder state
-    s_t = rnn_step(y_tprev, s_t, Ws, Wsh)
+    s_t = rnn_step(E[np.argmax(y_tprev)], s_t, Ws, Wsh)
     c_t, alpha_t = attention_luong(s_t, H)
 
     print(alpha_t)
@@ -99,4 +113,5 @@ for t in range(2):
 
     y_t = output_layer(stilde_t, W_out)
     print("output probs:", y_t)
+    print("============")
     y_tprev = y_t
