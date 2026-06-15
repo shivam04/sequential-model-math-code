@@ -1,9 +1,8 @@
 import numpy as np
 
 def softmax(x):
-    x = x - np.max(x, axis=axis, keepdims=True)
-    e = np.exp(x)
-    return e / np.sum(e, axis=axis, keepdims=True)
+    e = np.exp(x - np.max(x))
+    return e / e.sum()
 
 def attention(q, H):
     scores = H @ q
@@ -49,9 +48,11 @@ for t in range(len(X)):
 
     final_rep = H[t] + context
 
+    print(f'\nfinal: {final_rep}')
+
     logits = Wy @ final_rep
     probs = softmax(logits)
 
-    print(f"\nToken {t}")
+    print(f"Token {t}")
     print("attention:", attn)
     print("probs:", probs)
