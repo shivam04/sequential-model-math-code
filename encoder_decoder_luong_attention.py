@@ -19,17 +19,27 @@ def attention_luong(q, H):
     q: (d,)
     H: (T, d)
     """
-    scores = H @ q              # (T,)
+    scores = H @ q  # (T,d) * (d, 1)            # (T,)
     weights = softmax(scores)   # (T,)
-    context = weights @ H       # (d,)
+    context = weights @ H    # (1, T) * (T, d) =  # (d,)
     return context, weights
 
-# ---------- SETUP ----------
-Wx = np.array([[0.5, 0.1],
-               [0.3, 0.2]])
+def atten_hidden(s_t, c_t, Wc):
+    concat = np.concatenate([c_t, s_t])
+    return tanh(Wc @ concat)
 
-Wh = np.array([[0.4, 0.1],
-               [0.2, 0.3]])
+def output_layer(s_tilde, W_y):
+    """
+    y_t = softmax(Wy s~_t)
+    """
+    return softmax(W_y @ s_tilde)
+
+# ---------- SETUP ----------
+Wx = np.array([[1, 1],
+               [1, 1]])
+
+Wh = np.array([[1, 1],
+               [1, 1]])
 
 # Input sequence (3 timesteps, 2-dim embeddings)
 X = [
@@ -60,21 +70,33 @@ print("\n=== DECODER ===")
 print("h0_dec:", h_dec)
 
 # dummy previous token input (just for demo)
-x_t = np.array([1, 0])
+y_tprev = np.array([1, 0])
 
-for t in range(4):
+Ws = [[1,1],
+      [1,1]]
 
-    # 1. Attention over encoder states
-    context, attn = attention_luong(h_dec, H)
+Wsh = [[1,1],
+       [1, 1]]
 
-    # 2. RNN step (decoder)
-    h_prev = h_dec
-    h_tilde = rnn_step(x_t, h_prev, Wx, Wh)
+Wc = np.array([[1, 1, 1, 1],
+                [1, 1, 1, 1]])
 
-    # 3. Luong-style fusion (common simple version)
-    h_dec = np.tanh(h_tilde + context)
+W_out = np.array([[0.2, 0.1],
+                  [0.1, 0.3],
+                  [0.4, 0.2]])
 
-    print(f"\nStep {t}")
-    print("Attention weights:", attn)
-    print("Context vector:", context)
-    print("Hidden state:", h_dec)
+for t in range(2):
+
+    # hidden decoder state
+    s_t = rnn_step(y_tprev, h_dec, Ws, Wsh)
+    c_t, alpha_t = attention_luong(s_t, H)
+
+    print(alpha_t)
+    print(c_t)
+
+    stilde_t = atten_hidden(s_t, c_t, Wc)
+    print(stilde_t)
+
+    y_t = output_layer(stilde_t, W_out)
+    print("output probs:", y_t)
+    y_prev = y_t
