@@ -70,10 +70,10 @@ print("\n=== DECODER ===")
 print("s_0:", s_t)
 
 # dummy previous token input (just for demo)
-y_tprev = np.array([1, 0])
+y_tprev = np.array([1, 0, 0])
 
-Ws = [[1,1],
-      [1,1]]
+Ws = [[1, 1, 1],
+      [1, 1, 1]]
 
 Wsh = [[1,1],
        [1, 1]]
