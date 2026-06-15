@@ -1,19 +1,27 @@
 import numpy as np
 
+# ---------- ACTIVATIONS ----------
 def tanh(x):
     return np.tanh(x)
 
-def softmax(x):
-    e = np.exp(x - np.max(x))
-    return e / e.sum()
+def softmax(x, axis=0):
+    x = x - np.max(x, axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / np.sum(e, axis=axis, keepdims=True)
 
+# ---------- RNN CELL ----------
 def rnn_step(x, h_prev, Wx, Wh):
     return tanh(Wx @ x + Wh @ h_prev)
 
+# ---------- LUONG ATTENTION (DOT PRODUCT) ----------
 def attention_luong(q, H):
-    scores = H @ q
-    weights = softmax(scores)
-    context = weights @ H
+    """
+    q: (d,)
+    H: (T, d)
+    """
+    scores = H @ q              # (T,)
+    weights = softmax(scores)   # (T,)
+    context = weights @ H       # (d,)
     return context, weights
 
 # ---------- SETUP ----------
@@ -23,6 +31,7 @@ Wx = np.array([[0.5, 0.1],
 Wh = np.array([[0.4, 0.1],
                [0.2, 0.3]])
 
+# Input sequence (3 timesteps, 2-dim embeddings)
 X = [
     np.array([1, 0]),
     np.array([0, 1]),
@@ -31,10 +40,10 @@ X = [
 
 # ---------- ENCODER ----------
 h = np.zeros(2)
-
-print("h0:\n", h)
-
 H = []
+
+print("=== ENCODER ===")
+print("h0:", h)
 
 for x in X:
     h = rnn_step(x, h, Wx, Wh)
@@ -42,22 +51,30 @@ for x in X:
 
 H = np.array(H)
 
-print("Encoder H:\n", H)
+print("\nEncoder Hidden States H:\n", H)
 
 # ---------- DECODER ----------
-h_dec = H[-1]
+h_dec = H[-1]   # initialize decoder with last encoder state
 
-print("h0_dec:\n", h_dec)
+print("\n=== DECODER ===")
+print("h0_dec:", h_dec)
+
+# dummy previous token input (just for demo)
+x_t = np.array([1, 0])
 
 for t in range(4):
-    q = h_dec
 
-    context, attn = attention_luong(q, H)
+    # 1. Attention over encoder states
+    context, attn = attention_luong(h_dec, H)
 
-    h_dec = rnn_step(np.array([1, 0]), h_dec, Wx, Wh)
-    h_dec = h_dec + context
+    # 2. RNN step (decoder)
+    h_prev = h_dec
+    h_tilde = rnn_step(x_t, h_prev, Wx, Wh)
+
+    # 3. Luong-style fusion (common simple version)
+    h_dec = np.tanh(h_tilde + context)
 
     print(f"\nStep {t}")
-    print("Attention:", attn)
-    print("Context:", context)
-    print("Hidden:", h_dec)
+    print("Attention weights:", attn)
+    print("Context vector:", context)
+    print("Hidden state:", h_dec)
